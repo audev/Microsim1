@@ -9,9 +9,9 @@ library(stringr)
 library(sqldf)
 source('7flowCandidates.R')
 
-err <-read.csv("./solution1/err_Manch_afl6_iter2_2015-10-08.csv", as.is=T)
+err <-read.csv("./solution/err_Manch_afl6_iter2_2015-10-08.csv", as.is=T)
 
-sp <- read.csv( "./solution1/sp_flows_Manch_allocflow6_2015-10-08.csv", as.is=T)
+sp <- read.csv( "./solution/sp_flows_Manch_allocflow6_2015-10-08.csv", as.is=T)
 ct3<- ct3 <-read.csv("./MSOA_Manch/ct3.csv",header=T,as.is=TRUE)  # ?read. crosstabs
 
 err.total <- sum(abs(err[,2]))       # desequilibrio total
@@ -65,7 +65,7 @@ while (err.total > 0)  {   #SI AUN EXISTE ERROR en  SP .......
       genericB <- paste(genericB,collapse='.')}
     
     candidates <- spCandidates(type1A,type1B,signo) ### get rows in SP for ALL candidateS
-    #candidates <- spCandidates(type1A,type1B,generic2A,generic2B, signo) ### get no. row in sp for ALL candidateS 
+    
     
     n <- n+1
     if (length(candidates)>0) {break}          #EXIT LOOP
@@ -82,8 +82,6 @@ while (err.total > 0)  {   #SI AUN EXISTE ERROR en  SP .......
         
         sp[target,type1A] <- sp[target,type1A] + signo
         sp[target,type1B] <- sp[target,type1B] - signo  
-#         sp[target,type2A] <- sp[target,type2A] + signo
-#         sp[target,type2B] <- sp[target,type2B] - signo
                           #}
         
         #########RECALCULA errores totales/locales
@@ -99,7 +97,7 @@ while (err.total > 0)  {   #SI AUN EXISTE ERROR en  SP .......
  
 }
 
-spfile <- paste("./solution1/sp_flows_Manch_allocflow6_",Sys.Date(),"CORREG.csv",sep="")
+spfile <- paste("./solution/sp_flows_Manch_allocflow6_",Sys.Date(),"CORREG.csv",sep="")
 write.csv(sp,file=spfile)
 
 cat('All done !!')

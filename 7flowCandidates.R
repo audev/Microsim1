@@ -22,9 +22,7 @@ spCandidates <- function (type1A,type1B,signo)  {
   type2B  <<- col2B[1]
     
 
-#  col2AB <- expand.grid(cols2A,cols2B,stringsAsFactors = F)    #all the combinations ??
-   
-#spCandidates <- which (sp[,type1A]!=0 & sp[,type1B]!=0 & sp[,type2A]!=0 & sp[,type2B]!=0)   #FINAL
+
 spCandidates <- which (sp[,type1A]!=0 & sp[,type1B]!=0 )
   
   }
