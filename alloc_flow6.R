@@ -1,11 +1,13 @@
 ########## FLOWS ALLOCATION
+########## Generates an SP population that matches: 1) the flow/area totals 2) The city totals per
+########## type. Needs to be run before the balancing algorithm
 
 rm(list=ls())
 #setwd("//me-filer1/home$/au232/My Documents/1.CEDAR/3_Studies !!/21-Dft bid/9-FLOWS/FLOW_ALLOC")
  
-ct3 <-read.csv("./MSOA_Manch/ct3.csv",header=T,as.is=TRUE)
+ct3 <-read.csv("./DataSources/Manch_CT3/ct3.csv",header=T,as.is=TRUE)
 # Cross-tabs
-flow <-read.csv(file='./flows/flow_Manch.csv',header=T)
+flow <-read.csv(file='./DataSources/flows/flow_Manch.csv',header=T)
 
 # rows=crosstabs, columns= msoas
 results <- matrix(0,nrow=nrow(flow),ncol=nrow(ct3))   # flows-v x types->
@@ -33,9 +35,9 @@ for (i in 1:nflows)  { #LOOP flows
           colsnotnull <-  which(flow[i,6:20]!=0)
           target <- colnames(flow[,6:ncol(flow)])[colsnotnull]
           typestr <-paste(target[2],target[1],target[3],sep='-')  #builds 'a16-female-pass' string
-          results[i,typestr]<-1} #flow 1
+          results[i,typestr]<-1 #flow 1
      
-     else {      #TOTAL FLOW >1  
+     } else {      #TOTAL FLOW >1  
           #########
           probs <-data.frame(t(ct3$total))   #probs=totals, then transpose
           colnames(probs) <- colnames(results)
