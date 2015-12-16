@@ -5,7 +5,7 @@ Microsim code, data sources, results
 
 • [balancing_flows4.R]: 'balancer file'. Can be used to fit the SP solution even more (that is, going from the 99% accuracy compared to ct3.csv, to 100%). 
 
-• [getCandidates1.R]: sub for <balancing_flows4.R>. Can be altered to enlarge the base of candidates (right now stop at semantic difference=2, for 3 variables).
+• [getCandidates1.R]: sub for balancing_flows4.R. Can be altered to enlarge the base of candidates (right now stop at semantic difference=2, for 3 variables).
 
 
-Documentation to be added progressively from now (30-Oct-2015) on.
+
