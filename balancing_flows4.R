@@ -1,34 +1,37 @@
 
 
 ########## FLOWS BALANCING
-##OPTIONAL :  can be run AFTER main script (the population allocation), for better precision.
+##OPTIONAL :  can be run AFTER main script, for better precision.
 
 rm(list=ls())     #reset
 ##
 library(dplyr)
 library(stringr)
 library(sqldf)
-source('getCandidates1.R')
+source('getCandidates2.R')  # separa los 3 términos del genericA / genericB
 
 #read data sources
-ct3 <-read.csv("../../DataSources/Manch_CT3/ct3.csv",header=T,as.is=TRUE)  #
+ct3 <-read.csv("./DataSources/Manch_CT3/ct3.csv",header=T,as.is=TRUE)  #
 
-###IPF POPUL- test to compare w. IPF results
+###IPF POPUL
 #sp <- read.csv( "sp_IPF.csv", as.is=T)
 #err <-read.csv("errorIPF.csv", as.is=T)
 
 ###I.A. POPUL
-sp <- read.csv( "sp_allocflow6_2015-10-08.csv", as.is=T)
-err <-read.csv("err_Manch_2015-10-08.csv", as.is=T)
+sp <- read.csv( "./DataSources/sp_allocflow6_2015-10-08.csv", as.is=T)
+err <-read.csv("./DataSources/err_Manch_2015-10-08.csv", as.is=T)
 sp <- sp[,6:86]
 
 ####CENSUS FLOWS (only for probs)
-flow <- read.csv( "flow_Manch.csv", as.is=T)
+flow <- read.csv( "./DataSources/flows/flow_Manch.csv", as.is=T)
 
 err.total <- sum(abs(err[,2]))       # desequilibrio total
 
 candidates2 <- data.frame()
-i =1
+#log <-c('i','j','k','type1A','type1B','type2A','type2B','transfer','balance')
+#log <-c('type1A','type1B','type2A','type2B','transfer','balance')
+#log <-  as.data.frame(NA) 
+
 
 for (i in (1:nrow(err))) {
 
@@ -52,27 +55,23 @@ for (i in (1:nrow(err))) {
     subtypes1B <- unlist(strsplit(type1B, split=".", fixed=T))    #a16,f,bicycle
 
     #get semantic difference 1A <> 1B
-    genericA <-genericA1 <- setdiff(subtypes1A,subtypes1B)  #  bicycle  (or bicycle | male)
-    genericB <-genericB1 <- setdiff(subtypes1B,subtypes1A)  #####  car  (or car- | female)
+    genericA <- setdiff(subtypes1A,subtypes1B)  #  bicycle  (or bicycle | male)
+    genericB <- setdiff(subtypes1B,subtypes1A)  #####  car  (or car- | female)
     semdiff <- length(genericA)  #semantic difference between terms 
     
-    if (length(genericA)!=1) {
-      genericA <- paste(genericA,collapse='.')
-      genericA <- paste('\\b',genericA,sep='') }
-    
-    if (length(genericB)!=1) {
-      genericB <- paste(genericB,collapse='.')
-      genericB <- paste('\\b',genericB,sep='') }
-    
+
     ###########Search type1B        #BUSCAR BALANCEADOR
 
-    if (length(genericA1)<3) {
+    if (length(genericA)<3) {  #for semdiff==3 there are no balancing terms...
+      candidates2 <- NA
       getCandidates2(signo)
       k=1
 
       
-      if (class(candidates2)=='data.frame') {
+      if (class(candidates2)=='data.frame' & !is.null(candidates2)) {
       
+        OKproceed <-1
+          
         repeat {
 
           type2A <- as.character(candidates2[k,1])
@@ -80,7 +79,7 @@ for (i in (1:nrow(err))) {
           spCandidates <- which (sp[,type1A]!=0 & sp[,type1B]!=0 & sp[,type2A]!=0 & sp[,type2B]!=0)   #FINAL
 
           k <- k+1
-          OKproceed <-1
+          #OKproceed <-1
 
           ############
           #TRANSFER BALANCE
@@ -96,8 +95,10 @@ for (i in (1:nrow(err))) {
             d <- abs( err[which(err[,1]==type2B),2] )
             disponible <- min(a,b,c,d)
             if (a==0 | b==0 | c==0 | d==0) {OKproceed <- 0}
+            
             transfer <- min(length(spCandidates),disponible)     # either: no. of types / min. amount
-
+            #log1 <-as.character(c(i,j,k,type1A,type1B,type2A,type2B,balance,transfer))
+            #log <- rbind(log,log1)
 
             if (transfer>0) {
               
@@ -115,17 +116,19 @@ for (i in (1:nrow(err))) {
             #########RECALC errores totales/locales
 
             err[,2] <- colSums(sp[,2:81]) - ct3$total0
+            err.total <- sum(abs(err[,2]))
             spCandidates <- which (sp[,type1A]!=0 & sp[,type1B]!=0 & sp[,type2A]!=0 & sp[,type2B]!=0)
             balance <- err[i,2]
+            
                                                                                           }   #WHILE TRANSFER
 
 
-          if ( err[i,2]==0   | k > nrow(candidates2) | OKproceed==0    ) {break}          #EXIT REPEAT
+          if (err[i,2]==0   | k > nrow(candidates2) | OKproceed==0    ) {break}          #EXIT REPEAT
               }  #end REPEAT
 
-                                              }  #IF candidates2 is valid
+                                              }  #IF candidates2 is data.frame
 
-                      }    #end if (ONLY running for generic A=1)
+                      }    #end if (ONLY running for generic A<3)
 
     j <- j+1
 
@@ -133,6 +136,7 @@ for (i in (1:nrow(err))) {
 
  }        #END FOR
 
+err.total <- sum(abs(err[,2]))       # desequilibrio total
 spfile <- paste("sp_Manch_complex_NON-IPF",Sys.Date(),".csv",sep="")
 write.csv(sp,file=spfile)
 
